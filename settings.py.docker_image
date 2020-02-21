@@ -29,8 +29,8 @@ ANNOTATION_MIN_AREA = 400
 # Label ids corresponding to zhaoyang models
 # NOTE: RELEVANT_LABELS list items must be the keys of CYTOMINE_LABELS dictionary
 # [Label.necrosis.id, Label.fibrosis.id, Label.tumour.id, Label.inflammation.id]
-RELEVANT_LABELS = Label.ids
-CYTOMINE_LABELS_IDS = []
+RELEVANT_LABELS = [0]
+CYTOMINE_LABELS_IDS = [1186]
 # Model label ids mapped to cytomine label ids
 CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
 
