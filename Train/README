@@ -1,0 +1,22 @@
+## Training Record
+### Files Explaination
+
+
+# Trainig different unets strcuture with train_module
+# 
+#  Configurations are saved in options files
+
+# Train_unets.py in charges of  training unet uresnet
+
+# Train_fcdn.py  is used to train fcdn 
+
+
+
+# 2018-Dec-------------------------------
+# After change the dataset to 1024  two models are used for segmentation
+
+# Train_res_seg.py   res_seg is based on cycle-gan resnet with upsampling
+# Train_unet_seg.py  is base on unet with deconv and resnet
+# Train_unet_seg2.py  is base on unet with upsampling
+
+

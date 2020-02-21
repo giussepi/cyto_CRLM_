@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+""" CRLM settings """
+
+import os
+
+from constants import Label
+
+
+BASE_PATH = os.path.expanduser('~')
+
+###############################################################################
+#                                    TRAIN                                    #
+###############################################################################
+TRAIN_PATH = os.path.join(
+    BASE_PATH, 'Public/link/environments/CRLM/images/Patches_448/All/')
+TRAIN_TEST_PATH = os.path.join(
+    BASE_PATH, 'Public/link/environments/CRLM/images/Patches_448/Test/')
+TRAIN_SAVE_PATH = os.path.join(BASE_PATH, 'Desktop/')
+
+
+###############################################################################
+#                                     LOAD                                    #
+###############################################################################
+LOAD_STATE_DICT_PATH = os.path.join(
+    BASE_PATH, 'Public/link/environments/CRLM/weights/aaaPatchCNN_best.pth')
+LOAD_SLIDE_PATH = os.path.join(
+    BASE_PATH, 'Public/link/environments/CRLM/images/raw_images/CRLM_042.ndpi')
+LOAD_SAVE_PATH =  os.path.join(
+    BASE_PATH, 'Public/link/environments/CRLM/results/')
+LOAD_SAVE_IMAGE_PATH = os.path.join(BASE_PATH, 'Desktop', 'CRLM_042_superpixel_1.png')
+LOAD_SAVE_IMAGE_PATH_2 = os.path.join(BASE_PATH, 'Desktop', 'CRLM_042_superpixel_2.png')
+
+ANNOTATION_MIN_AREA = 400
+
+# Label ids corresponding to zhaoyang models
+# NOTE: RELEVANT_LABELS list items must be the keys of CYTOMINE_LABELS dictionary
+# [Label.necrosis.id, Label.fibrosis.id, Label.tumour.id, Label.inflammation.id]
+RELEVANT_LABELS = Label.ids
+CYTOMINE_LABELS_IDS = []
+# Model label ids mapped to cytomine label ids
+CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
+
+
+###############################################################################
+#                                    Utils                                     #
+###############################################################################
+ANNOTATION_BATCH = 50
+ANNOTATION_DISPLACEMENT_X = 160
+ANNOTATION_DISPLACEMENT_Y = -133

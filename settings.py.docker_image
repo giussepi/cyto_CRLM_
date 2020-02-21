@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+""" CRLM settings """
+
+import os
+
+from constants import Label
+
+
+BASE_PATH = os.path.expanduser('~')
+
+###############################################################################
+#                                    TRAIN                                    #
+###############################################################################
+TRAIN_PATH = ''
+TRAIN_TEST_PATH = ''
+TRAIN_SAVE_PATH = ''
+
+###############################################################################
+#                                     LOAD                                    #
+###############################################################################
+LOAD_STATE_DICT_PATH = os.path.join(BASE_PATH, 'CRLM/weights/aaaPatchCNN_best.pth')
+LOAD_SLIDE_PATH = ''
+LOAD_SAVE_PATH =  os.path.join(BASE_PATH, 'CRLM/results/')
+LOAD_SAVE_IMAGE_PATH = ''
+LOAD_SAVE_IMAGE_PATH_2 = ''
+
+ANNOTATION_MIN_AREA = 400
+
+# Label ids corresponding to zhaoyang models
+# NOTE: RELEVANT_LABELS list items must be the keys of CYTOMINE_LABELS dictionary
+# [Label.necrosis.id, Label.fibrosis.id, Label.tumour.id, Label.inflammation.id]
+RELEVANT_LABELS = Label.ids
+CYTOMINE_LABELS_IDS = []
+# Model label ids mapped to cytomine label ids
+CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
+
+
+###############################################################################
+#                                    Utils                                     #
+###############################################################################
+ANNOTATION_BATCH = 50
+ANNOTATION_DISPLACEMENT_X = 160
+ANNOTATION_DISPLACEMENT_Y = -133

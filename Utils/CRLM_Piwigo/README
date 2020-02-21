@@ -1,0 +1,18 @@
+README:
+
+dependency:
+
+openslide
+
+pip install piwigo
+pip install progressbar
+pip install piwigotools
+
+
+Logs:
+
+Last Update : Histology5.py  (categories inside)  11/21/17
+			 Add " " to the URL to piwigo
+			 Add 9 categories
+
+			 
