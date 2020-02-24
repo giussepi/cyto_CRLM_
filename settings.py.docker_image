@@ -6,7 +6,7 @@ import os
 from constants import Label
 
 
-BASE_PATH = os.path.expanduser('~')
+BASE_PATH = os.getenv("HOME")
 
 ###############################################################################
 #                                    TRAIN                                    #
@@ -18,7 +18,7 @@ TRAIN_SAVE_PATH = ''
 ###############################################################################
 #                                     LOAD                                    #
 ###############################################################################
-LOAD_STATE_DICT_PATH = os.path.join(BASE_PATH, 'CRLM/weights/aaaPatchCNN_best.pth')
+LOAD_STATE_DICT_PATH = '/CRLM/weights/aaaPatchCNN_best.pth'
 LOAD_SLIDE_PATH = ''
 LOAD_SAVE_PATH =  os.path.join(BASE_PATH, 'CRLM/results/')
 LOAD_SAVE_IMAGE_PATH = ''
@@ -41,3 +41,7 @@ CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
 ANNOTATION_BATCH = 50
 ANNOTATION_DISPLACEMENT_X = 160
 ANNOTATION_DISPLACEMENT_Y = -133
+
+# docker run -it --network=host --gpus all -e NVIDIA_VISIBLE_DEVICES=all ttt --cytomine_host localhost-core --cytomine_public_key b6ebb23c-00ff-427b-be24-87b2a82490df --cytomine_private_key 6812f09b-3f33-4938-82ca-b23032d377fd --cytomine_id_project 154 --cytomine_id_software 225327 --cytomine_id_image_instance 3643
+
+# docker run -it --network=host --gpus all -e NVIDIA_VISIBLE_DEVICES=all ttt --cytomine_host localhost-core --cytomine_public_key 'dadb7d7a-5822-48f7-ab42-59bce27750ae' --cytomine_private_key 'd73f4602-51d2-4d15-91e4-d4cc175d65fd' --cytomine_id_project 187 --cytomine_id_software 228848  --cytomine_id_image_instance 375
