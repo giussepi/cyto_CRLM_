@@ -20,7 +20,7 @@ TRAIN_SAVE_PATH = ''
 ###############################################################################
 LOAD_STATE_DICT_PATH = '/CRLM/weights/aaaPatchCNN_best.pth'
 LOAD_SLIDE_PATH = ''
-LOAD_SAVE_PATH =  os.path.join(BASE_PATH, 'CRLM/results/')
+LOAD_SAVE_PATH = os.path.join(BASE_PATH, 'CRLM/results/')
 LOAD_SAVE_IMAGE_PATH = ''
 LOAD_SAVE_IMAGE_PATH_2 = ''
 
@@ -29,11 +29,10 @@ ANNOTATION_MIN_AREA = 400
 # Label ids corresponding to zhaoyang models
 # NOTE: RELEVANT_LABELS list items must be the keys of CYTOMINE_LABELS dictionary
 # [Label.necrosis.id, Label.fibrosis.id, Label.tumour.id, Label.inflammation.id]
-RELEVANT_LABELS = [0]
-CYTOMINE_LABELS_IDS = [1186]
+RELEVANT_LABELS = Label.ids
+CYTOMINE_LABELS_IDS = []
 # Model label ids mapped to cytomine label ids
 CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
-
 
 ###############################################################################
 #                                    Utils                                     #
@@ -41,6 +40,7 @@ CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
 ANNOTATION_BATCH = 50
 ANNOTATION_DISPLACEMENT_X = 160
 ANNOTATION_DISPLACEMENT_Y = -133
+ANNOTATION_SLEEP_TIME = 15
 
 # docker run -it --network=host --gpus all -e NVIDIA_VISIBLE_DEVICES=all ttt --cytomine_host localhost-core --cytomine_public_key b6ebb23c-00ff-427b-be24-87b2a82490df --cytomine_private_key 6812f09b-3f33-4938-82ca-b23032d377fd --cytomine_id_project 154 --cytomine_id_software 225327 --cytomine_id_image_instance 3643
 

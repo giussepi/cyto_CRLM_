@@ -12,7 +12,8 @@ from skimage.measure import regionprops
 from skimage.segmentation import slic
 from skimage.transform import resize
 
-from settings import ANNOTATION_DISPLACEMENT_X, ANNOTATION_DISPLACEMENT_Y, LOAD_SAVE_PATH
+from settings import ANNOTATION_DISPLACEMENT_X, ANNOTATION_DISPLACEMENT_Y, LOAD_SAVE_PATH,\
+    LOAD_SLIDE_PATH, Label
 
 
 def CNN_Superpixels(im, label_tissue):
@@ -187,3 +188,35 @@ def generate_result_full_path(wsi_path):
     assert Path(wsi_path).is_file()
     assert wsi_path.endswith('.ndpi')
     return os.path.join(LOAD_SAVE_PATH, os.path.basename(wsi_path).replace('.ndpi', '.npy'))
+
+
+def get_pie_chart_data(wsi_path=LOAD_SLIDE_PATH):
+    """
+    Returns a quantitaive analysis that can be used to generate a pie chart
+
+    Args:
+        wsi_path                (str)  : path to the ndpi image
+
+    Returns:
+        The List of percentages of pixels per class, sorted following the order from Label.ids
+        [class_0_percentage, class_1_percentage, class_2_percentage, ...]
+    """
+    assert isinstance(wsi_path, str)
+    assert Path(wsi_path).is_file()
+
+    # NOTE: we need to use tresult mask because the polygons present overlapping;
+    #       in this regard, using the mask to calculate the percentages will provide
+    #       accurate results (otherwise, using the polygons areas will sum more than
+    #       the total area)
+    wsi_result_full_path = generate_result_full_path(wsi_path)
+    tresult = np.array(np.load(wsi_result_full_path), dtype=np.int)[:, :, 0].T
+    total = tresult.flatten().shape[0]
+
+    # adding labels values not found on tresult mask
+    label_num_pixels = dict((
+        label, np.count_nonzero(tresult == label)) for label in np.unique(tresult))
+    difference = dict((
+        label, 0) for label in set(Label.ids).difference(label_num_pixels.keys()))
+    label_num_pixels.update(difference)
+
+    return [round(label_num_pixels[label]*100/total, 2) for label in Label.ids]

@@ -173,7 +173,7 @@ def process_wsi_and_save(wsi_path=LOAD_SLIDE_PATH, overwrite=False):
     print("Start Processing")
     print(time.ctime())
     result_array = process_wsi(model, wsi_path, small_step=112)
-    os.makedirs(os.path.dirname(LOAD_SAVE_PATH), exist_ok=True)
+    os.makedirs(LOAD_SAVE_PATH, exist_ok=True)
     np.save(save_full_path, result_array)
     print("Process Done")
     print(time.ctime())
