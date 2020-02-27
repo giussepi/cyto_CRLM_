@@ -30,7 +30,7 @@ ANNOTATION_MIN_AREA = 400
 # NOTE: RELEVANT_LABELS list items must be the keys of CYTOMINE_LABELS dictionary
 # [Label.necrosis.id, Label.fibrosis.id, Label.tumour.id, Label.inflammation.id]
 RELEVANT_LABELS = Label.ids
-CYTOMINE_LABELS_IDS = []
+CYTOMINE_LABELS_IDS = [2206, 2226, 2238, 2258, 2278, 2292, 2304, 2312, 2332, 2340, 2346]
 # Model label ids mapped to cytomine label ids
 CYTOMINE_LABELS = dict(zip(RELEVANT_LABELS, CYTOMINE_LABELS_IDS))
 
