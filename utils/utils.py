@@ -5,6 +5,7 @@ from collections import Counter
 import os
 from pathlib import Path
 
+from cytomine.models import ImageInstance
 import numpy as np
 import openslide as ops
 from shapely.geometry import Polygon, MultiPolygon
@@ -13,7 +14,7 @@ from skimage.segmentation import slic
 from skimage.transform import resize
 
 from settings import ANNOTATION_DISPLACEMENT_X, ANNOTATION_DISPLACEMENT_Y, LOAD_SAVE_PATH,\
-    LOAD_SLIDE_PATH, Label
+    LOAD_SLIDE_PATH, Label, APP_CONTAINER_DOWNLOAD_PATH
 
 
 def CNN_Superpixels(im, label_tissue):
@@ -24,7 +25,7 @@ def CNN_Superpixels(im, label_tissue):
     regions = regionprops(segments_slic)
 
     if len(label_tissue.shape) == 2:
-        #mask2 = resize(label_image,segments_slic.shape)
+        # mask2 = resize(label_image,segments_slic.shape)
         mask2 = np.array(resize(np.array(label_tissue, dtype=np.int), im.shape[:2], preserve_range=True), dtype=np.int)
         mask3 = np.zeros_like(mask2)
 
@@ -190,12 +191,14 @@ def generate_result_full_path(wsi_path):
     return os.path.join(LOAD_SAVE_PATH, os.path.basename(wsi_path).replace('.ndpi', '.npy'))
 
 
-def get_pie_chart_data(wsi_path=LOAD_SLIDE_PATH):
+def get_pie_chart_data(wsi_path=LOAD_SLIDE_PATH, delete_results_file=False):
     """
     Returns a quantitaive analysis that can be used to generate a pie chart
+    Optionally, it can remove the <wsi_filename>.npy file (if delete_results_file=True)
 
     Args:
         wsi_path                (str)  : path to the ndpi image
+        delete_results_file     (bool)  : If set to true, removes the <wsi_filename>.npy file
 
     Returns:
         The List of percentages of pixels per class, sorted following the order from Label.ids
@@ -203,6 +206,7 @@ def get_pie_chart_data(wsi_path=LOAD_SLIDE_PATH):
     """
     assert isinstance(wsi_path, str)
     assert Path(wsi_path).is_file()
+    assert isinstance(delete_results_file, bool)
 
     # NOTE: we need to use tresult mask because the polygons present overlapping;
     #       in this regard, using the mask to calculate the percentages will provide
@@ -219,4 +223,55 @@ def get_pie_chart_data(wsi_path=LOAD_SLIDE_PATH):
         label, 0) for label in set(Label.ids).difference(label_num_pixels.keys()))
     label_num_pixels.update(difference)
 
+    if delete_results_file:
+        os.remove(wsi_result_full_path)
+
     return [round(label_num_pixels[label]*100/total, 2) for label in Label.ids]
+
+
+def get_container_image_path(img):
+    """
+    Returns the path to the file image 'img' in the application docker container
+
+    Args:
+        img (ImageInstance) : Cytomine ImageInstance
+
+    Returns:
+        string
+    """
+    assert isinstance(img, ImageInstance)
+
+    return os.path.join(APP_CONTAINER_DOWNLOAD_PATH, img.originalFilename)
+
+
+def download_image(img):
+    """
+    Downloads the img at APP_CONTAINER_DOWNLOAD_PATH in the docker container and replaces
+    the extendion .jpg (set by default by ImageInstance.download) by the right one .ndpi
+
+    Args:
+        img (ImageInstance) : Cytomine ImageInstance
+    """
+    assert isinstance(img, ImageInstance)
+
+    img.download(os.path.join(APP_CONTAINER_DOWNLOAD_PATH, '{originalFilename}'))
+    download_name = get_container_image_path(img).replace('.ndpi', '.jpg')
+
+    assert Path(download_name).is_file(),\
+        "{} could not be downloaded".format(download_name)
+
+    os.rename(download_name, get_container_image_path(img))
+
+
+def remove_image_local_copy(img):
+    """
+    Removes local image copy of the image (if it exists)
+
+    Args:
+        img (ImageInstance) : Cytomine ImageInstance
+    """
+
+    assert isinstance(img, ImageInstance)
+
+    if Path(get_container_image_path(img)).is_file():
+        os.remove(get_container_image_path(img))

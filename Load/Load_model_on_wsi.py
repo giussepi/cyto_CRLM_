@@ -22,13 +22,13 @@ import torch
 from constants import Label
 from Model.PatchCNN import PatchCNN
 from settings import LOAD_STATE_DICT_PATH, LOAD_SLIDE_PATH, LOAD_SAVE_PATH, LOAD_SAVE_IMAGE_PATH,\
-    LOAD_SAVE_IMAGE_PATH_2, ANNOTATION_MIN_AREA, RELEVANT_LABELS
+    LOAD_SAVE_IMAGE_PATH_2, ANNOTATION_MIN_AREA, RELEVANT_LABELS, DEVICE_IDS
 from utils.utils import CNN_Superpixels, remove_repeated_coords, scale_adapt,\
     smooth_simplify_polygons, generate_result_full_path
 from Utils.fig2img import fig2img
 
 
-def process_large_image(model, input_patch, step=28, out_scale=4, num_classes=11, patch_size=448, show=False, cuda_size=None):
+def process_large_image(model, input_patch, step=28, out_scale=4, num_classes=11, patch_size=448, show=False, cuda_size=None, use_cuda=True):
     """
     model pytorch model
     input_patch  nd_array
@@ -61,17 +61,30 @@ def process_large_image(model, input_patch, step=28, out_scale=4, num_classes=11
     if cuda_size == None:
         for i in range(0, nx):
             test_tensor = final_tensor[i*ny:i*ny+ny]
-            out = model(test_tensor.cuda())
+
+            with torch.no_grad():
+                if use_cuda:
+                    out = model(test_tensor.cuda())
+                else:
+                    out = model(test_tensor.cpu())
+
             softmax = torch.nn.Softmax2d()
             out2 = softmax(out)
             final_result2.append(out2.detach().cpu().numpy())
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
+
         t = np.array(final_result2).transpose(0, 3, 1, 4, 2).reshape(nx*out_scale, ny*out_scale, num_classes)
 
     else:
         for i in range(0, nx*ny, cuda_size):
             test_tensor = final_tensor[i:i+cuda_size]
-            out = model(test_tensor.cuda())
+
+            with torch.no_grad:
+                if use_cuda:
+                    out = model(test_tensor.cuda())
+                else:
+                    out = model(test_tensor.cpu())
+
             softmax = torch.nn.Softmax2d()
             out2 = softmax(out)
             if out2.size(0) != cuda_size:
@@ -80,7 +93,7 @@ def process_large_image(model, input_patch, step=28, out_scale=4, num_classes=11
                 final_result2.append(tout2)
             else:
                 final_result2.append(out2.detach().cpu().numpy())
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
 
         tt = np.array(final_result2)
         s = tt.shape
@@ -95,7 +108,10 @@ def process_large_image(model, input_patch, step=28, out_scale=4, num_classes=11
     return t
 
 
-def process_wsi(model, slide_path, small_step=56, small_patch_size=448, out_scale=4, num_classes=11):
+def process_wsi(
+        model, slide_path, small_step=56, small_patch_size=448, out_scale=4, num_classes=11,
+        use_cuda=True
+):
     sl = ops.OpenSlide(slide_path)
 
     # small_step = 224    # should be times of 28
@@ -115,7 +131,7 @@ def process_wsi(model, slide_path, small_step=56, small_patch_size=448, out_scal
                     (i*large_step, j*large_step),
                     0, (large_patch_size, large_patch_size)))
                 tpatch_result = process_large_image(model, input_patch=tpatch, out_scale=out_scale, step=small_step,
-                                                    num_classes=num_classes, patch_size=small_patch_size)
+                                                    num_classes=num_classes, patch_size=small_patch_size, use_cuda=use_cuda)
                 mask448 = CNN_Superpixels(tpatch, tpatch_result)
                 result_array[i*patch_result_size*out_scale:(i+1)*patch_result_size*out_scale,
                              j*patch_result_size*out_scale:(j+1)*patch_result_size*out_scale, :] = \
@@ -131,7 +147,7 @@ def process_wsi(model, slide_path, small_step=56, small_patch_size=448, out_scal
     return result_array[:sl.dimensions[0]//small_step*out_scale, :sl.dimensions[1]//small_step*out_scale, :]
 
 
-def process_wsi_and_save(wsi_path=LOAD_SLIDE_PATH, overwrite=False):
+def process_wsi_and_save(wsi_path=LOAD_SLIDE_PATH, overwrite=False, use_cuda=True):
     """
     Processes the WSI (.ndpi) and saves the result at save_path with the
     format <wsi_filename>.npy
@@ -139,20 +155,27 @@ def process_wsi_and_save(wsi_path=LOAD_SLIDE_PATH, overwrite=False):
     Args:
         wsi_path   (str)  : path to ndpi file
         overwrite  (bool) : If true recalculates the result, otherwise nothing is executed
+        use_cuda   (bool) : If true will try to use use cuda; otherwise, cpu
     """
     # TODO: TO BE TESTED ON titanX SERVER
     assert wsi_path.endswith('.ndpi')
     assert Path(wsi_path).is_file()
+    assert isinstance(use_cuda, bool)
 
     save_full_path = generate_result_full_path(wsi_path)
+
     if Path(save_full_path).is_file() and not overwrite:
         return
 
-    device = torch.device("cuda:0")
+    if use_cuda:
+        device = torch.device('cuda:{}'.format(','.join([str(i) for i in DEVICE_IDS]))
+                              if torch.cuda.device_count() > 0 else torch.device('cpu'))
+    else:
+        device = torch.device("cpu")
+
     num_layers = [3, 4, 6, 3]  # res34
     # num_layers = [2,2,2,2] # res18
     dropout_rate = 0
-    #dilation = 2
     model = PatchCNN(layers=num_layers, dropout_rate=dropout_rate)
     state_dict = torch.load(LOAD_STATE_DICT_PATH)
     new_state_dict = {}
@@ -172,7 +195,7 @@ def process_wsi_and_save(wsi_path=LOAD_SLIDE_PATH, overwrite=False):
 
     print("Start Processing")
     print(time.ctime())
-    result_array = process_wsi(model, wsi_path, small_step=112)
+    result_array = process_wsi(model, wsi_path, small_step=112, use_cuda=use_cuda)
     os.makedirs(LOAD_SAVE_PATH, exist_ok=True)
     np.save(save_full_path, result_array)
     print("Process Done")
@@ -218,7 +241,7 @@ def generate_polygons(
         wsi_path                (str)  : path to the ndpi image
         generate_image          (bool) : boolean to plot and save the annotations
         annotated_image_pattern (str)  : name pattren for the generated annotated images
-        delete_results_file     (str)  : If set to true, removes the <wsi_filename>.npy file
+        delete_results_file     (bool) : If set to true, removes the <wsi_filename>.npy file
 
     Returns:
         Dictionary of rescaled contours
@@ -228,6 +251,9 @@ def generate_polygons(
     assert isinstance(generate_image, bool)
     assert isinstance(annotated_image_pattern, str)
     assert Path(wsi_path).is_file()
+    assert isinstance(adapt_to_cytomine, bool)
+    assert isinstance(delete_results_file, bool)
+
     # TODO: TO BE TESTED ON TITANX server
     wsi_result_full_path = generate_result_full_path(wsi_path)
     tresult = np.array(np.load(wsi_result_full_path), dtype=np.int)[:, :, 0].T
