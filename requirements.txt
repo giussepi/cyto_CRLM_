@@ -41,7 +41,7 @@ networkx==2.2
 notebook==5.7.8
 numpy==1.16.2
 olefile==0.46
-opencv-python==4.0.0.21
+opencv-python==4.2.0.32
 opencv-python-headless==4.1.2.30
 openslide-python==1.1.1
 pandocfilters==1.4.2
